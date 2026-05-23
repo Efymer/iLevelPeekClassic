@@ -5,6 +5,7 @@
 ## Version: 1.0.0
 ## IconTexture: Interface\Icons\SPELL_Holy_MindVision
 ## SavedVariables: iLevelPeekClassicDB
+## X-Curse-Project-ID: 1551410
 
 Config.lua
 Colors.lua
