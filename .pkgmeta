@@ -1,10 +1,10 @@
 package-as: iLevelPeekClassic
 
-enable-nolib-creation: no
+changelog-file: CHANGELOG.md
 
 ignore:
   - .github
-  - .gitignore
-  - .pkgmeta
+  - .claude
   - CLAUDE.md
   - README.md
+  - .gitignore
