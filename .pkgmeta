@@ -1,0 +1,10 @@
+package-as: iLevelPeekClassic
+
+enable-nolib-creation: no
+
+ignore:
+  - .github
+  - .gitignore
+  - .pkgmeta
+  - CLAUDE.md
+  - README.md

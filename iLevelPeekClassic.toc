@@ -1,0 +1,14 @@
+## Interface: 50503
+## Title: iLevelPeek Classic
+## Notes: Injects item level into unit tooltips, with class-colored names and guild rank.
+## Author: Efymer
+## Version: 1.0.0
+## IconTexture: Interface\Icons\SPELL_Holy_MindVision
+## SavedVariables: iLevelPeekClassicDB
+
+Config.lua
+Colors.lua
+Locales.lua
+Settings.lua
+Core.lua
+Tooltip.lua
