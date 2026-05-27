@@ -1,3 +1,7 @@
+## [v1.0.1]
+
+- Item level now correctly includes Valor upgrade bonuses (e.g. a 509 chest upgraded 2/2 shows 517)
+
 ## [v1.0.0]
 
 - First release for World of Warcraft: Mists of Pandaria Classic (5.5.0)

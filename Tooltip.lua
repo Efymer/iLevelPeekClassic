@@ -27,9 +27,26 @@ local TOOLTIP_LINE_ADDED_KEY = addonName .. "_TooltipLineAdded"
 local ILVL_NON_WEAPON_SLOTS = {1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18}
 local SLOT_MAINHAND, SLOT_OFFHAND = 16, 17
 
+-- Hidden tooltip used to read the effective "Item Level" line, which includes
+-- Valor upgrade bonuses that C_Item.GetDetailedItemLevelInfo ignores on MoP Classic.
+local scanTip = CreateFrame("GameTooltip", addonName .. "ScanTip", nil, "GameTooltipTemplate")
+scanTip:SetOwner(UIParent, "ANCHOR_NONE")
+local ILVL_PATTERN = ITEM_LEVEL:gsub("%%d", "(%%d+)")
+
 local function getSlotItemLevel(unit, slot)
     local link = GetInventoryItemLink(unit, slot)
     if not link then return nil end
+
+    scanTip:ClearLines()
+    scanTip:SetInventoryItem(unit, slot)
+    for i = 2, min(scanTip:NumLines(), 6) do
+        local text = _G[addonName .. "ScanTipTextLeft" .. i]
+        if text then
+            local lvl = text:GetText() and text:GetText():match(ILVL_PATTERN)
+            if lvl then return tonumber(lvl) end
+        end
+    end
+
     if C_Item and C_Item.GetDetailedItemLevelInfo then
         local lvl = C_Item.GetDetailedItemLevelInfo(link)
         if lvl and lvl > 0 then return lvl end
