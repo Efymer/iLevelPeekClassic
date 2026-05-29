@@ -2,7 +2,7 @@
 ## Title: iLevelPeek Classic
 ## Notes: Injects item level into unit tooltips, with class-colored names and guild rank.
 ## Author: Efymer
-## Version: 1.0.1
+## Version: 1.0.2
 ## IconTexture: Interface\Icons\SPELL_Holy_MindVision
 ## SavedVariables: iLevelPeekClassicDB
 ## X-Curse-Project-ID: 1551410

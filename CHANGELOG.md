@@ -1,3 +1,7 @@
+## [v1.0.2]
+
+- Fixed players occasionally showing a wildly wrong item level (e.g. 600) when first hovered, before their gear had finished loading
+
 ## [v1.0.1]
 
 - Item level now correctly includes Valor upgrade bonuses (e.g. a 509 chest upgraded 2/2 shows 517)

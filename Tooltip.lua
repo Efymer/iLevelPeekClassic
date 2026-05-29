@@ -38,7 +38,11 @@ local function getSlotItemLevel(unit, slot)
     if not link then return nil end
 
     scanTip:ClearLines()
-    scanTip:SetInventoryItem(unit, slot)
+    -- Skip slots whose item data isn't cached yet: SetInventoryItem returns
+    -- false, and reading on would risk picking up stale lines from the prior scan.
+    if not scanTip:SetInventoryItem(unit, slot) then
+        return nil
+    end
     for i = 2, min(scanTip:NumLines(), 6) do
         local text = _G[addonName .. "ScanTipTextLeft" .. i]
         if text then
@@ -81,6 +85,24 @@ local function computeInspectItemLevel(unit)
     end
 
     if count == 0 then return nil end
+
+    -- A partial scan (most slots not yet cached client-side) can wildly skew the
+    -- average -- e.g. only the 2H weapon loads, count=2, avg=weapon ilvl ~600.
+    -- Require most equipped slots to have resolved before trusting the result;
+    -- otherwise return nil so the hover retries once the client has the data.
+    local equipped = 0
+    for _, slot in ipairs(ILVL_NON_WEAPON_SLOTS) do
+        if GetInventoryItemLink(unit, slot) then equipped = equipped + 1 end
+    end
+    if GetInventoryItemLink(unit, SLOT_MAINHAND) then equipped = equipped + 1 end
+    if GetInventoryItemLink(unit, SLOT_OFFHAND) then equipped = equipped + 1 end
+
+    -- count can exceed equipped (2H counts twice); compare resolved slots against
+    -- equipped slots, allowing a small shortfall for genuinely empty slots.
+    if equipped >= 5 and count < equipped - 2 then
+        return nil
+    end
+
     return total / count
 end
 
