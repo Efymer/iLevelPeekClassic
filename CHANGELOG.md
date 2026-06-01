@@ -1,3 +1,7 @@
+## [v1.0.1]
+
+- Refreshed item level tooltip colours to match standard gear-quality colours
+
 ## [v1.0.0]
 
 - First release for World of Warcraft: The Burning Crusade Classic (2.5.x)
