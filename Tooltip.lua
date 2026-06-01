@@ -22,87 +22,50 @@ local MOUSEOVER_INSPECT_THROTTLE = 1.5
 local MOUSEOVER_CACHE_TTL = 300
 local TOOLTIP_LINE_ADDED_KEY = addonName .. "_TooltipLineAdded"
 
--- Slots used to compute iLvl. Skip 4 (Shirt) and 19 (Tabard). Weapons are
--- handled separately to apply the 2H-counts-twice rule.
-local ILVL_NON_WEAPON_SLOTS = {1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18}
-local SLOT_MAINHAND, SLOT_OFFHAND = 16, 17
+-- Slots that contribute to the average: loop 1-18, skipping 4 (Shirt) and 19
+-- (Tabard). 16 = MainHand, 17 = OffHand, 18 = Ranged (bow/gun/wand/relic).
+-- A two-hander simply leaves slot 17 empty, so it's counted once like any slot.
 
--- Hidden tooltip used to read the effective "Item Level" line, which includes
--- Valor upgrade bonuses that C_Item.GetDetailedItemLevelInfo ignores on MoP Classic.
-local scanTip = CreateFrame("GameTooltip", addonName .. "ScanTip", nil, "GameTooltipTemplate")
-scanTip:SetOwner(UIParent, "ANCHOR_NONE")
-local ILVL_PATTERN = ITEM_LEVEL:gsub("%%d", "(%%d+)")
-
+-- On TBC Classic there are no Valor/item upgrades, so C_Item.GetItemInfo returns
+-- the true effective item level directly -- no hidden-tooltip scanning needed
+-- (the MoP build required that workaround; this build does not).
 local function getSlotItemLevel(unit, slot)
     local link = GetInventoryItemLink(unit, slot)
     if not link then return nil end
 
-    scanTip:ClearLines()
-    -- Skip slots whose item data isn't cached yet: SetInventoryItem returns
-    -- false, and reading on would risk picking up stale lines from the prior scan.
-    if not scanTip:SetInventoryItem(unit, slot) then
-        return nil
+    local _, _, _, itemLevel = C_Item.GetItemInfo(link)
+    if itemLevel and itemLevel > 0 then
+        return itemLevel
     end
-    for i = 2, min(scanTip:NumLines(), 6) do
-        local text = _G[addonName .. "ScanTipTextLeft" .. i]
-        if text then
-            local lvl = text:GetText() and text:GetText():match(ILVL_PATTERN)
-            if lvl then return tonumber(lvl) end
-        end
-    end
-
-    if C_Item and C_Item.GetDetailedItemLevelInfo then
-        local lvl = C_Item.GetDetailedItemLevelInfo(link)
-        if lvl and lvl > 0 then return lvl end
-    end
-    local _, _, _, itemLevel = GetItemInfo(link)
-    if itemLevel and itemLevel > 0 then return itemLevel end
     return nil
 end
 
--- Approximate MoP's average item-level formula. Divisor is 17 when wielding
--- weapons (MH counts twice if no OH), matching the live character-pane number
--- to within ~1 iLvl. Items not yet cached by the client return nil and are
--- skipped; re-hovering after a moment will pick them up.
+-- Matches TacoTip's inspect avg ilvl (the standard for Classic/TBC inspect
+-- tooltips): sum the item level of every equipped slot and divide by the number
+-- of slots actually filled. A 2H counts once (its empty offhand just isn't
+-- counted); the ranged slot counts. If any equipped slot's data isn't cached
+-- client-side yet, bail (return nil) so a partial average is never shown -- a
+-- re-hover picks it up once the data has loaded.
 local function computeInspectItemLevel(unit)
     local total, count = 0, 0
-    for _, slot in ipairs(ILVL_NON_WEAPON_SLOTS) do
-        local lvl = getSlotItemLevel(unit, slot)
-        if lvl then
-            total = total + lvl
-            count = count + 1
+    for slot = 1, 18 do
+        if slot ~= 4 then
+            local link = GetInventoryItemLink(unit, slot)
+            if link then
+                local lvl = getSlotItemLevel(unit, slot)
+                if not lvl then
+                    -- Item present but its data hasn't loaded yet: don't trust a
+                    -- partial total. Touch remaining slots to prime the cache, then bail.
+                    for s = slot, 18 do GetInventoryItemLink(unit, s) end
+                    return nil
+                end
+                total = total + lvl
+                count = count + 1
+            end
         end
     end
 
-    local mh = getSlotItemLevel(unit, SLOT_MAINHAND)
-    local oh = getSlotItemLevel(unit, SLOT_OFFHAND)
-    if mh and not oh then
-        total = total + mh * 2
-        count = count + 2
-    else
-        if mh then total = total + mh; count = count + 1 end
-        if oh then total = total + oh; count = count + 1 end
-    end
-
     if count == 0 then return nil end
-
-    -- A partial scan (most slots not yet cached client-side) can wildly skew the
-    -- average -- e.g. only the 2H weapon loads, count=2, avg=weapon ilvl ~600.
-    -- Require most equipped slots to have resolved before trusting the result;
-    -- otherwise return nil so the hover retries once the client has the data.
-    local equipped = 0
-    for _, slot in ipairs(ILVL_NON_WEAPON_SLOTS) do
-        if GetInventoryItemLink(unit, slot) then equipped = equipped + 1 end
-    end
-    if GetInventoryItemLink(unit, SLOT_MAINHAND) then equipped = equipped + 1 end
-    if GetInventoryItemLink(unit, SLOT_OFFHAND) then equipped = equipped + 1 end
-
-    -- count can exceed equipped (2H counts twice); compare resolved slots against
-    -- equipped slots, allowing a small shortfall for genuinely empty slots.
-    if equipped >= 5 and count < equipped - 2 then
-        return nil
-    end
-
     return total / count
 end
 
@@ -141,9 +104,8 @@ local function canInspectMouseover()
     return (now - lastInspectTime) >= MOUSEOVER_INSPECT_THROTTLE
 end
 
--- MoP Classic 5.5.0 prints "Out of range" / "Unknown unit" to UIErrorsFrame
--- when CanInspect returns false, ignoring the showError=false flag. Wrap the
--- call so the error message never reaches the screen.
+-- Guard CanInspect so any "Out of range" / "Unknown unit." error it routes to
+-- UIErrorsFrame never reaches the screen (matches the MoP build's behaviour).
 local function silentCanInspect(unit)
     local orig = UIErrorsFrame.AddMessage
     UIErrorsFrame.AddMessage = function() end
@@ -252,12 +214,13 @@ local function onTooltipSetUnit(tooltip)
         end
     end
 
-    -- Self tooltip: use GetAverageItemLevel directly (no inspect needed)
+    -- Self tooltip: compute directly from our own equipped slots. GetAverageItemLevel
+    -- is not guaranteed on this build, so reuse the slot scan (our own items are
+    -- always cached client-side, so it resolves immediately).
     if UnitIsUnit(unit, "player") then
         if not setting("showItemLevel") then return end
 
-        local averageItemLevel, equippedItemLevel = GetAverageItemLevel()
-        local itemLevel = equippedItemLevel or averageItemLevel
+        local itemLevel = computeInspectItemLevel("player")
         if itemLevel and itemLevel > 0 then
             local rounded = addon:RoundItemLevel(itemLevel)
             local iR, iG, iB = addon.Colors:GetItemLevelColor(rounded)

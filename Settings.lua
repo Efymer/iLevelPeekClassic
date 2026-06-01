@@ -9,17 +9,17 @@ local defaults = {
 }
 
 function addon.Settings:Initialize()
-    if not iLevelPeekClassicDB then
-        iLevelPeekClassicDB = {}
+    if not iLevelPeekTBCDB then
+        iLevelPeekTBCDB = {}
     end
 
     for key, value in pairs(defaults) do
-        if iLevelPeekClassicDB[key] == nil then
-            iLevelPeekClassicDB[key] = value
+        if iLevelPeekTBCDB[key] == nil then
+            iLevelPeekTBCDB[key] = value
         end
     end
 
-    addon.db = iLevelPeekClassicDB
+    addon.db = iLevelPeekTBCDB
     self:CreatePanel()
 end
 
@@ -47,8 +47,14 @@ function addon.Settings:AddToggle(category, key, name, tooltip)
 end
 
 function addon.Settings:CreatePanel()
+    -- The modern Settings registry is present on TBC Classic 2.5.x; if a future
+    -- build drops it, the slash command and tooltip features still work without a panel.
+    if not (Settings and Settings.RegisterVerticalLayoutCategory) then
+        return
+    end
+
     local L = addon.L
-    local category, layout = Settings.RegisterVerticalLayoutCategory("iLevelPeek Classic")
+    local category, layout = Settings.RegisterVerticalLayoutCategory("iLevelPeek TBC")
 
     layout:AddInitializer(CreateSettingsListSectionHeaderInitializer(L.SETTINGS_SECTION_DISPLAY))
     self:AddToggle(category, "showItemLevel", L.SETTINGS_SHOW_ILVL_NAME, L.SETTINGS_SHOW_ILVL_TIP)

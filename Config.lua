@@ -2,18 +2,18 @@ local addonName, addon = ...
 
 addon.Config = addon.Config or {}
 
--- MoP Classic Phase 3 (Throne of Thunder) iLvl bands.
--- 541-542: Heroic Thunderforged / Ra-den (top of the tier)
--- 535:     Heroic base ToT
--- 528:     Normal Thunderforged ToT
--- 522:     Normal base ToT
--- 502:     LFR ToT / Celestial Dungeons
--- 463-476: pre-5.2 heroic 5-mans / Tier 14 LFR
+-- TBC Classic iLvl bands, by tier of content.
+-- 154+:    Sunwell Plateau (T6.5) / Sunmote gear
+-- 146+:    Black Temple / Hyjal Summit (T6)
+-- 141+:    Serpentshrine Cavern / Tempest Keep (T5)
+-- 128+:    Karazhan / Gruul / Magtheridon (T4) and badge gear
+-- 110+:    pre-raid epics / heroic dungeon blues / early reputation gear
+-- below:   leveling / questing greens
 addon.Config.ilvlColorThresholds = {
-    { min = 540, color = { 1.00, 0.82, 0.00 } }, -- legendary gold (Heroic Thunderforged / Ra-den)
-    { min = 528, color = { 1.00, 0.50, 0.00 } }, -- orange (Heroic / Normal Thunderforged)
-    { min = 522, color = { 0.64, 0.21, 0.93 } }, -- epic purple (Normal ToT)
-    { min = 502, color = { 0.00, 0.44, 0.87 } }, -- rare blue (LFR ToT)
-    { min = 463, color = { 0.12, 1.00, 0.00 } }, -- uncommon green (pre-raid / T14 LFR)
+    { min = 154, color = { 1.00, 0.82, 0.00 } }, -- legendary gold (Sunwell)
+    { min = 146, color = { 1.00, 0.50, 0.00 } }, -- orange (BT / Hyjal, T6)
+    { min = 141, color = { 0.64, 0.21, 0.93 } }, -- epic purple (SSC / TK, T5)
+    { min = 128, color = { 0.00, 0.44, 0.87 } }, -- rare blue (Kara / Gruul / Mag, T4)
+    { min = 110, color = { 0.12, 1.00, 0.00 } }, -- uncommon green (pre-raid / heroics)
     { min = 0,   color = { 0.62, 0.62, 0.62 } }, -- fallback gray
 }
