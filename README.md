@@ -1,13 +1,13 @@
 # iLevelPeek Classic
 
-`iLevelPeek Classic` is a lightweight World of Warcraft: Mists of Pandaria Classic (5.5.0) addon that injects item level directly into unit tooltips, with class-colored names and guild rank.
+`iLevelPeek Classic` is a lightweight World of Warcraft: Mists of Pandaria Classic (5.5.4) addon that injects item level directly into unit tooltips, with class-colored names and guild rank.
 
 ## Features
 
 *   Class-colored player name in the tooltip
 *   Guild rank shown as `Rank of <Guild Name>`
 *   Class-colored spec line (e.g. "Level 90 Holy **Paladin**")
-*   Item level coloured by Throne of Thunder gear bands (LFR / Normal / Heroic / Thunderforged / Ra-den)
+*   Item level coloured by Siege of Orgrimmar gear bands (Timeless Isle / Celestials / Normal / Heroic / Warforged)
 *   Works on both yourself and inspected players
 *   Players outside inspect range simply show no item-level line — no `iLvl: ...` placeholder
 *   Per-GUID cache (5-minute TTL) so re-hovering the same player is instant

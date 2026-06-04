@@ -1,3 +1,8 @@
+## [v1.1.0]
+
+- Updated for Siege of Orgrimmar (5.5.4)
+- Item-level colours retuned for Siege of Orgrimmar gear (Timeless Isle / Celestials / Normal / Heroic / Warforged)
+
 ## [v1.0.2]
 
 - Fixed players occasionally showing a wildly wrong item level (e.g. 600) when first hovered, before their gear had finished loading

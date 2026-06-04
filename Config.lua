@@ -2,18 +2,18 @@ local addonName, addon = ...
 
 addon.Config = addon.Config or {}
 
--- MoP Classic Phase 3 (Throne of Thunder) iLvl bands.
--- 541-542: Heroic Thunderforged / Ra-den (top of the tier)
--- 535:     Heroic base ToT
--- 528:     Normal Thunderforged ToT
--- 522:     Normal base ToT
--- 502:     LFR ToT / Celestial Dungeons
--- 463-476: pre-5.2 heroic 5-mans / Tier 14 LFR
+-- MoP Classic Phase 5 (Siege of Orgrimmar) iLvl bands.
+-- No LFR or Flexible difficulty exists in MoP Classic — only Normal and Heroic.
+-- 566-600: Heroic SoO (566) / Heroic Warforged (572) / legendary cloak (600)
+-- 553-559: Normal SoO (553) / Normal Warforged (559)
+-- 528:     Celestials / Ordos world bosses
+-- 496:     Timeless Isle gear
+-- 463:     pre-SoO / Throne of Thunder carryover
 addon.Config.ilvlColorThresholds = {
-    { min = 540, color = { 1.00, 0.82, 0.00 } }, -- legendary gold (Heroic Thunderforged / Ra-den)
-    { min = 528, color = { 1.00, 0.50, 0.00 } }, -- orange (Heroic / Normal Thunderforged)
-    { min = 522, color = { 0.64, 0.21, 0.93 } }, -- epic purple (Normal ToT)
-    { min = 502, color = { 0.00, 0.44, 0.87 } }, -- rare blue (LFR ToT)
-    { min = 463, color = { 0.12, 1.00, 0.00 } }, -- uncommon green (pre-raid / T14 LFR)
+    { min = 566, color = { 1.00, 0.82, 0.00 } }, -- legendary gold (Heroic / Warforged / cloak)
+    { min = 553, color = { 1.00, 0.50, 0.00 } }, -- orange (Normal / Normal Warforged)
+    { min = 528, color = { 0.64, 0.21, 0.93 } }, -- epic purple (Celestials / Ordos)
+    { min = 496, color = { 0.00, 0.44, 0.87 } }, -- rare blue (Timeless Isle)
+    { min = 463, color = { 0.12, 1.00, 0.00 } }, -- uncommon green (pre-SoO / ToT carryover)
     { min = 0,   color = { 0.62, 0.62, 0.62 } }, -- fallback gray
 }
