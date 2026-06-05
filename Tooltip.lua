@@ -22,10 +22,13 @@ local MOUSEOVER_INSPECT_THROTTLE = 1.5
 local MOUSEOVER_CACHE_TTL = 300
 local TOOLTIP_LINE_ADDED_KEY = addonName .. "_TooltipLineAdded"
 
--- Slots used to compute iLvl. Skip 4 (Shirt) and 19 (Tabard). Weapons are
--- handled separately to apply the 2H-counts-twice rule.
-local ILVL_NON_WEAPON_SLOTS = {1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18}
-local SLOT_MAINHAND, SLOT_OFFHAND = 16, 17
+-- Slots used to compute iLvl. Skip 4 (Shirt) and 19 (Tabard). Matches TacoTip's
+-- GetScore loop (anzz1/TacoTip gearscore.lua): iterate 1-18, skip shirt, count
+-- every filled slot exactly once. A 2H weapon is NEVER doubled for the iLvl
+-- average -- TacoTip's TitanGrip/Hunter multipliers apply only to GearScore, not
+-- to LevelTotal/ItemCount. Slot 16 (MainHand), 17 (OffHand) and 18 (Ranged) each
+-- add their item level once. This is the formula CLAUDE.md commits us to.
+local ILVL_SLOTS = {1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18}
 
 -- Hidden tooltip used to read the effective "Item Level" line, which includes
 -- Valor upgrade bonuses that C_Item.GetDetailedItemLevelInfo ignores on MoP Classic.
@@ -60,13 +63,15 @@ local function getSlotItemLevel(unit, slot)
     return nil
 end
 
--- Approximate MoP's average item-level formula. Divisor is 17 when wielding
--- weapons (MH counts twice if no OH), matching the live character-pane number
--- to within ~1 iLvl. Items not yet cached by the client return nil and are
--- skipped; re-hovering after a moment will pick them up.
+-- TacoTip's worn-gear average (anzz1/TacoTip gearscore.lua GetScore): sum the
+-- item level of every filled slot once, divide by the number of filled slots.
+-- No slot is ever doubled. Items not yet cached return nil and are skipped;
+-- if any equipped slot hasn't resolved we bail to nil (TacoTip's IsReady=false)
+-- so a partial -- and inflated -- average is never shown. Re-hovering after a
+-- moment picks the data up once the client has it.
 local function computeInspectItemLevel(unit)
     local total, count = 0, 0
-    for _, slot in ipairs(ILVL_NON_WEAPON_SLOTS) do
+    for _, slot in ipairs(ILVL_SLOTS) do
         local lvl = getSlotItemLevel(unit, slot)
         if lvl then
             total = total + lvl
@@ -74,32 +79,18 @@ local function computeInspectItemLevel(unit)
         end
     end
 
-    local mh = getSlotItemLevel(unit, SLOT_MAINHAND)
-    local oh = getSlotItemLevel(unit, SLOT_OFFHAND)
-    if mh and not oh then
-        total = total + mh * 2
-        count = count + 2
-    else
-        if mh then total = total + mh; count = count + 1 end
-        if oh then total = total + oh; count = count + 1 end
-    end
-
     if count == 0 then return nil end
 
-    -- A partial scan (most slots not yet cached client-side) can wildly skew the
-    -- average -- e.g. only the 2H weapon loads, count=2, avg=weapon ilvl ~600.
-    -- Require most equipped slots to have resolved before trusting the result;
-    -- otherwise return nil so the hover retries once the client has the data.
+    -- Bail if any equipped slot's data hasn't loaded yet. Every filled slot is
+    -- counted exactly once, so resolved (count) must equal equipped slots; a
+    -- shortfall means at least one item is still uncached and the average would
+    -- be skewed. (TacoTip sets IsReady=false and returns nothing in this case.)
     local equipped = 0
-    for _, slot in ipairs(ILVL_NON_WEAPON_SLOTS) do
+    for _, slot in ipairs(ILVL_SLOTS) do
         if GetInventoryItemLink(unit, slot) then equipped = equipped + 1 end
     end
-    if GetInventoryItemLink(unit, SLOT_MAINHAND) then equipped = equipped + 1 end
-    if GetInventoryItemLink(unit, SLOT_OFFHAND) then equipped = equipped + 1 end
 
-    -- count can exceed equipped (2H counts twice); compare resolved slots against
-    -- equipped slots, allowing a small shortfall for genuinely empty slots.
-    if equipped >= 5 and count < equipped - 2 then
+    if count < equipped then
         return nil
     end
 

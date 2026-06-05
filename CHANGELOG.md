@@ -1,3 +1,7 @@
+## [v1.1.1]
+
+- Fixed players occasionally showing an impossibly high item level (e.g. 587) — two-handed and ranged weapons are no longer double-counted in the average
+
 ## [v1.1.0]
 
 - Updated for Siege of Orgrimmar (5.5.4)
