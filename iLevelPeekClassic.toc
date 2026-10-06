@@ -1,4 +1,4 @@
-## Interface: 20506
+## Interface: 120100
 ## Title: iLevelPeek TBC
 ## Notes: Injects item level into unit tooltips, with class-colored names and guild rank.
 ## Author: Efymer
